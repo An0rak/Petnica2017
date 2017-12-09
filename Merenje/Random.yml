@@ -1,0 +1,32 @@
+%YAML:1.0
+Prva: !!opencv-matrix
+   rows: 16
+   cols: 1
+   dt: "2f"
+   data: [ 125., 25., 300., 50., 350., 50., 400., 50., 250., 100., 300.,
+       100., 350., 100., 400., 100., 250., 150., 300., 150., 350., 150.,
+       400., 150., 250., 200., 300., 200., 350., 200., 400., 200. ]
+Druga: !!opencv-matrix
+   rows: 16
+   cols: 1
+   dt: "2f"
+   data: [ 1.32500000e+02, 25., 315., 50., 365., 50., 415., 50., 265.,
+       100., 315., 100., 365., 100., 415., 100., 265., 150., 315., 150.,
+       365., 150., 415., 150., 265., 200., 315., 200., 365., 200., 415.,
+       200. ]
+Aj: !!opencv-matrix
+   rows: 4
+   cols: 16
+   dt: f
+   data: [ .Nan, .Nan, .Nan, .Nan, .Nan, .Nan, .Nan, .Nan, .Nan, .Nan,
+       .Nan, .Nan, .Nan, .Nan, .Nan, .Nan, .Nan, .Nan, .Nan, .Nan, .Nan,
+       .Nan, .Nan, .Nan, .Nan, .Nan, .Nan, .Nan, .Nan, .Nan, .Nan, .Nan,
+       .Nan, .Nan, .Nan, .Nan, .Nan, .Nan, .Nan, .Nan, .Nan, .Nan, .Nan,
+       .Nan, .Nan, .Nan, .Nan, .Nan, .Nan, .Nan, .Nan, .Nan, .Nan, .Nan,
+       .Nan, .Nan, .Nan, .Nan, .Nan, .Nan, .Nan, .Nan, .Nan, .Nan ]
+Aj2: [ .Nan, .Nan, .Nan, .Nan, .Nan, .Nan, .Nan, .Nan, .Nan, .Nan, .Nan,
+    .Nan, .Nan, .Nan, .Nan, .Nan, .Nan, .Nan, .Nan, .Nan, .Nan, .Nan,
+    .Nan, .Nan, .Nan, .Nan, .Nan, .Nan, .Nan, .Nan, .Nan, .Nan, .Nan,
+    .Nan, .Nan, .Nan, .Nan, .Nan, .Nan, .Nan, .Nan, .Nan, .Nan, .Nan,
+    .Nan, .Nan, .Nan, .Nan ]
+percentage: 0.
