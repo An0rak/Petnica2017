@@ -5,7 +5,7 @@
 #include <math.h>
 #include <sstream>
 #include <fstream>
-#include "../Final/final.cpp"
+#include "../Core/core.cpp"
 
 using namespace std;
 using namespace cv;
@@ -14,13 +14,14 @@ using namespace cv;
 const float calibrationSquareDimension = 1.0;
 const Size chessBoardDimension = Size(9, 6);
 // Neophodne velicine
-Mat cameraMatrix(3,3,CV_32F);
-Mat distortionCoeff(5,1,CV_32F);
-vector<float> plane;
-vector<Point2f> correctMatchingPoints1, correctMatchingPoints2;
-vector<KeyPoint> correctKeyPoints1, correctKeyPoints2;
-vector<DMatch> allCorrectMatches;
-vector<Point3f> points3d;
+//Mat cameraMatrix(3,3,CV_32F);
+//Mat distortionCoeff(5,1,CV_32F);
+//vector<float> plane;
+//vector<Point2f> correctMatchingPoints1, correctMatchingPoints2;
+//vector<KeyPoint> correctKeyPoints1, correctKeyPoints2;
+//vector<DMatch> allCorrectMatches;
+//vector<Point3f> points3dfirst;
+//vector<Point3f> points3dsecond;
 Mat rvec(3,1,CV_32F);
 Mat tvec(3,1,CV_32F);
 Mat rmat(3,1,CV_32F);
@@ -107,7 +108,8 @@ void getCameraPosition(Mat img, Mat& tvec, Mat& rmat)
     getRelativeCameraLocation(tmp, tvec, rvec);
     tvec.convertTo(tvec, CV_32F);
     rvec.convertTo(rvec, CV_32F);
-    rmat = rodrigez(rvec);
+    //rmat = rodrigez(rvec);
+    Rodrigues(rvec, rmat);
     FileStorage fs("Vektori.yml", FileStorage::WRITE);
     fs << "RMAT" << rmat;
     fs << "RVEC" << rvec;
@@ -121,26 +123,22 @@ vector<float> findPlane(Mat img1, Mat img2)
     undistort(img2, tmp2, cameraMatrix, distortionCoeff);
     plane = getPlane(tmp1, tmp2, cameraMatrix, distortionCoeff,
                     correctMatchingPoints1, correctMatchingPoints2,
-                    correctKeyPoints1, correctKeyPoints2,allCorrectMatches,points3d);
-    FileStorage fs("Plane.yml", FileStorage::WRITE);
-    fs << "Plane" << plane;
-    fs << "Plane Points" << points3d;
-    fs.release();
+                    correctKeyPoints1, correctKeyPoints2,allCorrectMatches,points3dfirst, points3dsecond);
     return plane;
 }
 
 void registerImages()
 {
     vector<float> chessboardmodel {0,0,1,0};
-    vector<float> chessboard = transformPlane(rmat, tvec, chessboardmodel, false);
+    vector<float> chessboard = transformPlane(rmat, tvec, chessboardmodel, true);
     vector<Point3f> chessboardPointsmodel;
     createKnownBoardPosition(chessBoardDimension, calibrationSquareDimension, chessboardPointsmodel);
-    chessboardPoints = transformPoints(rmat, tvec, chessboardPointsmodel, false);
-    FileStorage fs("Rezultati.yml", FileStorage::WRITE);
+    chessboardPoints = transformPoints(rmat, tvec, chessboardPointsmodel, true);
+    FileStorage fs("Results.yml", FileStorage::WRITE);
     fs << "ChessBoard Plane" << chessboard;
     fs << "ChessBoard Points" << chessboardPoints;
     fs << "Object Plane" << plane;
-    fs << "Object Points" << points3d;
+    fs << "Object Points" << points3dfirst;
     fs << "ChessBoard Model" << chessboardPointsmodel;
 }
 
@@ -219,17 +217,15 @@ int main(int argc, char** argv)
                 break;
          }
     }*/
-    FileStorage fs("Sinteticki.yml", FileStorage::WRITE);
     namedWindow("Webcam", CV_WINDOW_AUTOSIZE);
     Mat loadimg1 = imread("Images//img1-1.jpg", CV_LOAD_IMAGE_GRAYSCALE);
     Mat loadimg2 = imread("Images//img1-2.jpg", CV_LOAD_IMAGE_GRAYSCALE);
     Mat loadimg3 = imread("Images//img1-3.jpg", CV_LOAD_IMAGE_GRAYSCALE);
     imshow("Webcam", loadimg1);
     waitKey(0);
-    //getCameraPosition(loadimg1, tvec, rmat);
+    getCameraPosition(loadimg1, tvec, rmat);
     findPlane(loadimg2, loadimg3);
-    fs << "Points" << points3d;
-    //registerImages();
-    cout << "Finish";
+    registerImages();
+    cout << "Finish \n";
     return 0;
 }

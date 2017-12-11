@@ -6,17 +6,17 @@
 
 #IncludeRegexTransform: 
 
-/root/AugmentedRealityPetnica2017/Sinteticki/sinteticki.cpp
+/home/Grimnir/AugmentedRealityPetnica2017/Sinteticki/sinteticki.cpp
 opencv2/opencv.hpp
-/root/AugmentedRealityPetnica2017/Sinteticki/opencv2/opencv.hpp
+/home/Grimnir/AugmentedRealityPetnica2017/Sinteticki/opencv2/opencv.hpp
 opencv2/highgui/highgui.hpp
-/root/AugmentedRealityPetnica2017/Sinteticki/opencv2/highgui/highgui.hpp
+/home/Grimnir/AugmentedRealityPetnica2017/Sinteticki/opencv2/highgui/highgui.hpp
 opencv2/features2d/features2d.hpp
-/root/AugmentedRealityPetnica2017/Sinteticki/opencv2/features2d/features2d.hpp
+/home/Grimnir/AugmentedRealityPetnica2017/Sinteticki/opencv2/features2d/features2d.hpp
 opencv2/nonfree/nonfree.hpp
-/root/AugmentedRealityPetnica2017/Sinteticki/opencv2/nonfree/nonfree.hpp
+/home/Grimnir/AugmentedRealityPetnica2017/Sinteticki/opencv2/nonfree/nonfree.hpp
 opencv2/legacy/legacy.hpp
-/root/AugmentedRealityPetnica2017/Sinteticki/opencv2/legacy/legacy.hpp
+/home/Grimnir/AugmentedRealityPetnica2017/Sinteticki/opencv2/legacy/legacy.hpp
 opencv2/calib3d/calib3d.hpp
 -
 opencv2/imgproc/imgproc.hpp

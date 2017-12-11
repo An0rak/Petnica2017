@@ -1,0 +1,3 @@
+/home/Grimnir/AugmentedRealityPetnica2017/Merenje/CMakeFiles/rebuild_cache.dir
+/home/Grimnir/AugmentedRealityPetnica2017/Merenje/CMakeFiles/Merenje.dir
+/home/Grimnir/AugmentedRealityPetnica2017/Merenje/CMakeFiles/edit_cache.dir

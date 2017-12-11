@@ -28,7 +28,8 @@ vector<float> plane;
 vector<Point2f> correctMatchingPoints1, correctMatchingPoints2;
 vector<KeyPoint> correctKeyPoints1, correctKeyPoints2;
 vector<DMatch> allCorrectMatches;
-vector<Point3f> points3d;
+vector<Point3f> points3dfirst;
+vector<Point3f> points3dsecond;
 
 
 
@@ -221,7 +222,7 @@ vector<Point3f> convertFromHomogenous(Mat points4d)
     return points3d;
 }
 
-bool DecomposeEtoRandT(const Mat_<float>& E,Mat_<float>& R1,Mat_<float>& R2,Mat_<float>& t1,Mat_<float>& t2)
+bool DecomposeEtoRandT(const Mat_<float> E,Mat_<float>& R1,Mat_<float>& R2,Mat_<float>& t1,Mat_<float>& t2)
 {
    	SVD svd(E,SVD::MODIFY_A);
 
@@ -280,52 +281,115 @@ void keepVectorsByStatus(vector<T>& f1, vector<V>& f2, vector<K>& f3, const vect
     }
 }
 
+vector<Point3f> transformPoints(Mat R, Mat T, vector<Point3f>& points, bool inverse)
+{
+	vector<Point3f> outpoints;
+	R.convertTo(R, CV_32F);
+	T.convertTo(T, CV_32F);
+	Mat Rp(3,3,CV_32F);
+	Mat Tp(3,1,CV_32F);
+	if(inverse)
+	{
+		Rp = R.inv();
+		Tp = -T;
+	}
+	else
+	{
+		Rp = R;
+		Tp = T;
+	}
+	Mat tmp(3,1,CV_32F);
+	Mat res1(3,1,CV_32F);
+	for(int i=0; i < points.size(); i++)
+	{
+		tmp.at<float>(0,0)= points[i].x;
+		tmp.at<float>(1,0)= points[i].y;
+		tmp.at<float>(2,0)= points[i].z;
+
+		res1 = Rp * tmp;
+		res1.at<float>(0,0) += Tp.at<float>(0,0);
+		res1.at<float>(1,0) += Tp.at<float>(1,0);
+		res1.at<float>(2,0) += Tp.at<float>(2,0);
+
+		Point3f tmpp;
+		tmpp.x = res1.at<float>(0,0);
+		tmpp.y = res1.at<float>(1,0);
+		tmpp.z = res1.at<float>(2,0);
+		outpoints.push_back(tmpp);
+	}
+	return outpoints;
+}
+
+
+
 vector<Point3f> trackedFeatures3D;
+bool triangulateAndCheckReproj(const Mat R, const Mat t, vector<Point2f> correctMatchingPoints1,vector<Point2f> correctMatchingPoints2,
+								Mat cameraMatrix, vector<Point3f>& points3dfirst, vector<Point3f>& points3dsecond, int number) {
 
-
-
-bool triangulateAndCheckReproj(const Mat& P, const Mat& P1,vector<Point2f> correctMatchingPoints1,vector<Point2f> correctMatchingPoints2,
-								Mat cameraMatrix, vector<Point3f>& points3d, int number) {
-
+	Mat_<float> P = Mat::eye(3,4,CV_32FC1);
+	Mat_<float> P2 = (Mat_<float>(3,4) <<
+										R.at<float>(0,0),   R.at<float>(0,1),    R.at<float>(0,2),    t.at<float>(0),   //2,1
+										R.at<float>(1,0),   R.at<float>(1,1),    R.at<float>(1,2),    t.at<float>(1),	  //0,2
+										R.at<float>(2,0),   R.at<float>(2,1),    R.at<float>(2,2),    t.at<float>(2));	//1,0
 	FileStorage fw("Traingulacije" + to_string(number) +".yml", FileStorage::WRITE);
 	vector<Point2f> trackedFeatures = correctMatchingPoints2;
 	vector<Point2f> bootstrap_kp = correctMatchingPoints1;
-	fw << "trackedFeatures" << trackedFeatures;
-	fw << "bootstrap_kp" << bootstrap_kp;
+	//fw << "trackedFeatures" << trackedFeatures;
+	//fw << "bootstrap_kp" << bootstrap_kp;
+	//fw << "P" << P;
+	//fw << "P2" << P2;
 	//undistort
     Mat normalizedTrackedPts,normalizedBootstrapPts;
     undistortPoints(Mat(trackedFeatures), normalizedTrackedPts, cameraMatrix, Mat());
     undistortPoints(Mat(bootstrap_kp), normalizedBootstrapPts, cameraMatrix, Mat());
-	fw << "normalizedTrackedPts" << normalizedTrackedPts;
-	fw << "normalizedBootstrapPts" << normalizedBootstrapPts;
+		//fw << "normalizedTrackedPts" << normalizedTrackedPts;
+		//fw << "normalizedBootstrapPts" << normalizedBootstrapPts;
 
     //triangulate
     Mat pt_3d_h(4,trackedFeatures.size(),CV_32FC1);
-    triangulatePoints(P,P1,normalizedBootstrapPts,normalizedTrackedPts,pt_3d_h);
+    triangulatePoints(P,P2,normalizedBootstrapPts,normalizedTrackedPts,pt_3d_h);
     Mat pt_3d; convertPointsFromHomogeneous(Mat(pt_3d_h.t()).reshape(4, 1),pt_3d);
-	fw << "homogenous" << pt_3d_h;
-	fw << "normal" << pt_3d;
-    //    cout << pt_3d.size() << endl;
-    //    cout << pt_3d.rowRange(0,10) << endl;
+		vector<Point3f> first, second;
+		first = convertFromHomogenous(pt_3d_h);
+		second = transformPoints(R, t, first, true);
+		fw << "first" << first;
+		fw << "second" << second;
 
-    vector<uchar> status(pt_3d.rows,0);
-    for (int i=0; i<pt_3d.rows; i++)
-	{
-        status[i] = (pt_3d.at<Point3f>(i).z > 0) ? 1 : 0;
+		vector<uchar> status1(first.size(),0);
+		vector<uchar> status2(second.size(),0);
+    for (int i=0; i<first.size(); i++)
+		{
+        status1[i] = (first[i].z > 0) ? 1 : 0;
+				status2[i] = (second[i].z > 0) ? 1 : 0;
     }
-    int count = countNonZero(status);
+    int count1 = countNonZero(status1);
+		int count2 = countNonZero(status2);
+    float percentage1 = ((float)count1 / (float)first.size());
+		float percentage2 = ((float)count2 / (float)second.size());
+    cout << count1 << "/" << first.size() << " = " << percentage1*100.0 << "% are in front of first camera \t";
+		cout << count2 << "/" << second.size() << " = " << percentage2*100.0 << "% are in front of second camera \t";
+		for(int i = 0; i < first.size(); i++)
+		{
+				if(status1[i] != 0 && status2[i] != 0)
+				{
+						points3dfirst.push_back(first[i]);
+						points3dsecond.push_back(second[i]);
+				}
 
-    double percentage = ((double)count / (double)pt_3d.rows);
-    cout << count << "/" << pt_3d.rows << " = " << percentage*100.0 << "% are in front of camera \t";
-    if(percentage < 0.75)
-	{
-		printf("\n");
+		}
+
+
+		if(percentage1 < 0.75 || percentage2 < 0.75)
+		{
+				printf("\n");
+				points3dfirst.clear();
+				points3dsecond.clear();
         return false; //less than 75% of the points are in front of the camera
-	}
+		}
+
 
 
     //calculate reprojection
-    cv::Mat_<float> R = P(cv::Rect(0,0,3,3));
     Vec3f rvec(0,0,0); //Rodrigues(R ,rvec);
     Vec3f tvec(0,0,0); // = P.col(3);
 	fw << "rvec" << rvec;
@@ -353,7 +417,8 @@ bool triangulateAndCheckReproj(const Mat& P, const Mat& P1,vector<Point2f> corre
         pt_3d.copyTo(Mat(trackedFeatures3D));
 
         keepVectorsByStatus(trackedFeatures,trackedFeatures3D,status);
-        cout << "keeping " << trackedFeatures.size() << " nicely reprojected points";
+        cout << "keeping " << trackedFeatures.size() << " nicely reprojected points \n";
+				fw << "Points" << points3dfirst;
         return true;
     }
     return false;
@@ -385,7 +450,7 @@ void sintetickiPodaci(Mat cameraMatrix, float t, Mat_<float> wp, vector<Point2f>
 }
 
 vector<float> getPlane(vector<Point2f>& correctMatchingPoints1, vector<Point2f>& correctMatchingPoints2,
-					   vector<KeyPoint>& correctKeyPoints1, vector<KeyPoint>& correctKeyPoints2,vector<DMatch>& correctMatches, vector<Point3f>& points3d )
+					   vector<KeyPoint>& correctKeyPoints1, vector<KeyPoint>& correctKeyPoints2,vector<DMatch>& correctMatches, vector<Point3f>& points3dfirst, vector<Point3f>& points3dsecond )
 {
 		vector<float> plane;
 		Mat_<float> cameraMatrix = (Mat_<float>(3,3) <<
@@ -394,7 +459,7 @@ vector<float> getPlane(vector<Point2f>& correctMatchingPoints1, vector<Point2f>&
 									0,0,1);
 
 	    Mat_<float> wp = (Mat_<float>(16  ,3) <<
-	                           1000, 500, 10,
+	                           1000, 500, 11,
 	                           1100, 500, 10,
 	                           1200, 500, 10,
 	                           1300, 500, 10,
@@ -402,7 +467,7 @@ vector<float> getPlane(vector<Point2f>& correctMatchingPoints1, vector<Point2f>&
 	                           1100, 600, 10,
 	                           1200, 600, 10,
 	                           1300, 600, 10,
-	                           1000, 700, 10,
+	                           1000, 700, 11,
 	                           1100, 700, 10,
 	                           1200, 700, 10,
 	                           1300, 700, 10,
@@ -450,48 +515,31 @@ vector<float> getPlane(vector<Point2f>& correctMatchingPoints1, vector<Point2f>&
             return plane;
 		}
 
-	    Mat points4d;
 
-	    Mat_<float> P = Mat::eye(3,4,CV_32FC1);
-
-		Mat_<float> P1 = (Mat_<float>(3,4) <<
-	    R1.at<float>(0,0),   R1.at<float>(0,1),    R1.at<float>(0,2),    t1.at<float>(0),   //2,1
-	    R1.at<float>(1,0),   R1.at<float>(1,1),    R1.at<float>(1,2),    t1.at<float>(1),	//0,2
-	    R1.at<float>(2,0),   R1.at<float>(2,1),    R1.at<float>(2,2),    t1.at<float>(2));	//1,0
 		printf("Traingulating 1st time \t");
-		if(!triangulateAndCheckReproj(P,P1,correctMatchingPoints1,correctMatchingPoints2, cameraMatrix, points3d, 1))
+		if(!triangulateAndCheckReproj(R1,t1,correctMatchingPoints1,correctMatchingPoints2, cameraMatrix, points3dfirst, points3dsecond, 1))
 		{
-			P1 = (Mat_<float>(3,4) <<
-	        R1.at<float>(0,0),   R1.at<float>(0,1),    R1.at<float>(0,2),    t2.at<float>(0),
-	        R1.at<float>(1,0),   R1.at<float>(1,1),    R1.at<float>(1,2),    t2.at<float>(1),
-	        R1.at<float>(2,0),   R1.at<float>(2,1),    R1.at<float>(2,2),    t2.at<float>(2));
 			printf("Traingulating 2nd time \t");
-			if(!triangulateAndCheckReproj(P,P1,correctMatchingPoints1,correctMatchingPoints2, cameraMatrix, points3d, 2))
+			if(!triangulateAndCheckReproj(R1,t2,correctMatchingPoints1,correctMatchingPoints2, cameraMatrix, points3dfirst, points3dsecond, 2))
 			{
-		    	P1 = (Mat_<float>(3,4) <<
-				R2.at<float>(0,0),   R2.at<float>(0,1),    R2.at<float>(0,2),    t2.at<float>(0),
-		        R2.at<float>(1,0),   R2.at<float>(1,1),    R2.at<float>(1,2),    t2.at<float>(1),
-		        R2.at<float>(2,0),   R2.at<float>(2,1),    R2.at<float>(2,2),    t2.at<float>(2));
 				printf("Traingulating 3rd time \t");
-				if(!triangulateAndCheckReproj(P,P1,correctMatchingPoints1,correctMatchingPoints2, cameraMatrix, points3d, 3))
+				if(!triangulateAndCheckReproj(R2,t2,correctMatchingPoints1,correctMatchingPoints2, cameraMatrix, points3dfirst, points3dsecond, 3))
 				{
-		        	P1 = (Mat_<float>(3,4) <<
-	                R2.at<float>(0,0),   R2.at<float>(0,1),    R2.at<float>(0,2),    t1.at<float>(0),
-	                R2.at<float>(1,0),   R2.at<float>(1,1),    R2.at<float>(1,2),    t1.at<float>(1),
-	                R2.at<float>(2,0),   R2.at<float>(2,1),    R2.at<float>(2,2),    t1.at<float>(2));
 					printf("Traingulating 4th time \t");
-					if(!triangulateAndCheckReproj(P,P1,correctMatchingPoints1,correctMatchingPoints2, cameraMatrix, points3d, 4))
+					if(!triangulateAndCheckReproj(R2,t1,correctMatchingPoints1,correctMatchingPoints2, cameraMatrix, points3dfirst, points3dsecond, 4))
 					{
-	                	printf("Nemoguca Trangulacija \n");
-		            }
-		        }
+						printf("Triangulation failed \n");
+					}
+				}
 			}
 		}
 
+
+
+
 	    int datasetSize = correctMatchingPoints1.size();
 	    int k = (int)(log(1 - 0.99) / (log(1 - 0.1))) + 1;
-
-	    //plane = ransac(points3d, k, 2, datasetSize/2);
+	    plane = ransac(points3dfirst, k, 2, datasetSize/2);
 
 	 	return plane;
 }
@@ -500,10 +548,11 @@ vector<float> getPlane(vector<Point2f>& correctMatchingPoints1, vector<Point2f>&
 int main(int argc, char** argv)
 {
 	plane = getPlane(correctMatchingPoints1, correctMatchingPoints2,
-                     correctKeyPoints1, correctKeyPoints2,allCorrectMatches,points3d);
-	FileStorage fs("Points.yml", FileStorage::WRITE);
+                     correctKeyPoints1, correctKeyPoints2,allCorrectMatches,points3dfirst, points3dsecond);
+	FileStorage fs("Results.yml", FileStorage::WRITE);
 	fs << "Plane" << plane;
-	fs << "Points" << points3d;
+	fs << "Points in first" << points3dfirst;
+	fs << "Points in second" << points3dsecond;
 	fs.release();
 	printf("Done \n");
 }

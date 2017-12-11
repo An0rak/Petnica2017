@@ -48,10 +48,10 @@ RM = /usr/local/bin/cmake -E remove -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /root/AugmentedRealityPetnica2017/Merenje
+CMAKE_SOURCE_DIR = /home/Grimnir/AugmentedRealityPetnica2017/Merenje
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /root/AugmentedRealityPetnica2017/Merenje
+CMAKE_BINARY_DIR = /home/Grimnir/AugmentedRealityPetnica2017/Merenje
 
 #=============================================================================
 # Targets provided globally by CMake.
@@ -80,9 +80,9 @@ edit_cache/fast: edit_cache
 
 # The main all target
 all: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /root/AugmentedRealityPetnica2017/Merenje/CMakeFiles /root/AugmentedRealityPetnica2017/Merenje/CMakeFiles/progress.marks
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/Grimnir/AugmentedRealityPetnica2017/Merenje/CMakeFiles /home/Grimnir/AugmentedRealityPetnica2017/Merenje/CMakeFiles/progress.marks
 	$(MAKE) -f CMakeFiles/Makefile2 all
-	$(CMAKE_COMMAND) -E cmake_progress_start /root/AugmentedRealityPetnica2017/Merenje/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/Grimnir/AugmentedRealityPetnica2017/Merenje/CMakeFiles 0
 .PHONY : all
 
 # The main clean target
@@ -157,8 +157,8 @@ help:
 	@echo "... clean"
 	@echo "... depend"
 	@echo "... rebuild_cache"
-	@echo "... edit_cache"
 	@echo "... Merenje"
+	@echo "... edit_cache"
 	@echo "... merenje.o"
 	@echo "... merenje.i"
 	@echo "... merenje.s"

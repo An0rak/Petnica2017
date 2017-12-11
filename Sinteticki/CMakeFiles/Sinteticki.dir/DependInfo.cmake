@@ -4,7 +4,7 @@ set(CMAKE_DEPENDS_LANGUAGES
   )
 # The set of files for implicit dependencies of each language:
 set(CMAKE_DEPENDS_CHECK_CXX
-  "/root/AugmentedRealityPetnica2017/Sinteticki/sinteticki.cpp" "/root/AugmentedRealityPetnica2017/Sinteticki/CMakeFiles/Sinteticki.dir/sinteticki.cpp.o"
+  "/home/Grimnir/AugmentedRealityPetnica2017/Sinteticki/sinteticki.cpp" "/home/Grimnir/AugmentedRealityPetnica2017/Sinteticki/CMakeFiles/Sinteticki.dir/sinteticki.cpp.o"
   )
 set(CMAKE_CXX_COMPILER_ID "GNU")
 

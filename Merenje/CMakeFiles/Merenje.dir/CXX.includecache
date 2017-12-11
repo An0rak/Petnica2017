@@ -6,17 +6,17 @@
 
 #IncludeRegexTransform: 
 
-/root/AugmentedRealityPetnica2017/Final/final.cpp
+/home/Grimnir/AugmentedRealityPetnica2017/Core/core.cpp
 opencv2/opencv.hpp
-/root/AugmentedRealityPetnica2017/Final/opencv2/opencv.hpp
+/home/Grimnir/AugmentedRealityPetnica2017/Core/opencv2/opencv.hpp
 opencv2/highgui/highgui.hpp
-/root/AugmentedRealityPetnica2017/Final/opencv2/highgui/highgui.hpp
+/home/Grimnir/AugmentedRealityPetnica2017/Core/opencv2/highgui/highgui.hpp
 opencv2/features2d/features2d.hpp
-/root/AugmentedRealityPetnica2017/Final/opencv2/features2d/features2d.hpp
+/home/Grimnir/AugmentedRealityPetnica2017/Core/opencv2/features2d/features2d.hpp
 opencv2/nonfree/nonfree.hpp
-/root/AugmentedRealityPetnica2017/Final/opencv2/nonfree/nonfree.hpp
+/home/Grimnir/AugmentedRealityPetnica2017/Core/opencv2/nonfree/nonfree.hpp
 opencv2/legacy/legacy.hpp
-/root/AugmentedRealityPetnica2017/Final/opencv2/legacy/legacy.hpp
+/home/Grimnir/AugmentedRealityPetnica2017/Core/opencv2/legacy/legacy.hpp
 opencv2/calib3d/calib3d.hpp
 -
 opencv2/imgproc/imgproc.hpp
@@ -36,11 +36,11 @@ random
 time.h
 -
 
-/root/AugmentedRealityPetnica2017/Merenje/merenje.cpp
+/home/Grimnir/AugmentedRealityPetnica2017/Merenje/merenje.cpp
 opencv2/opencv.hpp
-/root/AugmentedRealityPetnica2017/Merenje/opencv2/opencv.hpp
+/home/Grimnir/AugmentedRealityPetnica2017/Merenje/opencv2/opencv.hpp
 opencv2/highgui/highgui.hpp
-/root/AugmentedRealityPetnica2017/Merenje/opencv2/highgui/highgui.hpp
+/home/Grimnir/AugmentedRealityPetnica2017/Merenje/opencv2/highgui/highgui.hpp
 iostream
 -
 math.h
@@ -49,8 +49,8 @@ sstream
 -
 fstream
 -
-../Final/final.cpp
-/root/AugmentedRealityPetnica2017/Final/final.cpp
+../Core/core.cpp
+/home/Grimnir/AugmentedRealityPetnica2017/Core/core.cpp
 
 /usr/local/include/opencv2/calib3d/calib3d.hpp
 opencv2/core/core.hpp
