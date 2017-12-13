@@ -24,7 +24,7 @@ const Size chessBoardDimension = Size(9, 6);
 //vector<Point3f> points3dsecond;
 Mat rvec(3,1,CV_32F);
 Mat tvec(3,1,CV_32F);
-Mat rmat(3,1,CV_32F);
+Mat rmat(3,3,CV_32F);
 vector<Point3f> chessboardPoints;
 vector<float> chessboardplane;
 
@@ -76,8 +76,8 @@ void createKnownBoardPosition(Size boardSize, float squareEdgeLength, vector<Poi
 
 void getChessBoardCorners(Mat image, vector<Point2f>& allFoundCorners, bool showResult = false)
 {
-        bool found = findChessboardCorners(image, Size(9,6), allFoundCorners, CV_CALIB_CB_ADAPTIVE_THRESH | CV_CALIB_CB_NORMALIZE_IMAGE);
-
+        bool found = findChessboardCorners(image, chessBoardDimension, allFoundCorners, CV_CALIB_CB_ADAPTIVE_THRESH | CV_CALIB_CB_NORMALIZE_IMAGE);
+        Mat tmp =image;
         if(!found)
         {
             printf("Chess board missing!\n");
@@ -95,10 +95,17 @@ void getRelativeCameraLocation(Mat image, Mat& tvec, Mat& rvec)
     vector<Point3f> worldSpaceCornerPoints;
     createKnownBoardPosition(chessBoardDimension, calibrationSquareDimension, worldSpaceCornerPoints);
 
+    FileStorage fw("Provera.yml", FileStorage::WRITE);
+    fw << "Prvi" << checkerboardImageSpacePoints;
+    fw << "Drugi" << worldSpaceCornerPoints;
+
     vector<int> inliers;
-    solvePnPRansac(worldSpaceCornerPoints, checkerboardImageSpacePoints, cameraMatrix, distortionCoeff, rvec, tvec, false, 100, 1, worldSpaceCornerPoints.size()/2, inliers, CV_ITERATIVE);
-    //solvePnP(worldSpaceCornerPoints, checkerboardImageSpacePoints, cameraMatrix, distortionCoeff, rvec, tvec, false, CV_ITERATIVE);
+    //solvePnPRansac(worldSpaceCornerPoints, checkerboardImageSpacePoints, cameraMatrix, distortionCoeff, rvec, tvec, false, 100, 1, worldSpaceCornerPoints.size()/2, inliers, CV_ITERATIVE);
+    solvePnP(worldSpaceCornerPoints, checkerboardImageSpacePoints, cameraMatrix, distortionCoeff, rvec, tvec, false, CV_ITERATIVE);
+    fw << "rvec" << rvec;
+    fw << "tvec" << tvec;
 }
+
 
 
 void getCameraPosition(Mat img, Mat& tvec, Mat& rmat)
@@ -116,6 +123,7 @@ void getCameraPosition(Mat img, Mat& tvec, Mat& rmat)
     fs << "TVEC" << tvec;
     fs.release();
 }
+Mat random1, random2;
 vector<float> findPlane(Mat img1, Mat img2)
 {
     Mat tmp1, tmp2;
@@ -130,10 +138,12 @@ vector<float> findPlane(Mat img1, Mat img2)
 void registerImages()
 {
     vector<float> chessboardmodel {0,0,1,0};
-    vector<float> chessboard = transformPlane(rmat, tvec, chessboardmodel, true);
+    //vector<float> chessboard = transformPlane(rmat, tvec, chessboardmodel, false);
     vector<Point3f> chessboardPointsmodel;
     createKnownBoardPosition(chessBoardDimension, calibrationSquareDimension, chessboardPointsmodel);
     chessboardPoints = transformPoints(rmat, tvec, chessboardPointsmodel, true);
+    int k = 100;
+    vector<float> chessboard = ransac(chessboardPoints, k, 1, 3*chessboardPoints.size()/4);
     FileStorage fs("Results.yml", FileStorage::WRITE);
     fs << "ChessBoard Plane" << chessboard;
     fs << "ChessBoard Points" << chessboardPoints;
@@ -195,14 +205,13 @@ int main(int argc, char** argv)
                 count++;
                 if(count == 1)
                 {
-                    getCameraPosition(img, rmat, tvec);
+                    getCameraPosition(img, tvec, rmat);
 
                 }
-                count++;
                 if(count == 3)
                 {
                     Mat loadimg1 = imread("Images//img" + to_string(imgs) + "-2.jpg", CV_LOAD_IMAGE_GRAYSCALE);
-                    Mat loadimg2 = imread("Images//img" + to_string(imgs) + "-3.jpg", CV_LOAD_IMAGE_GRAYSCALE);
+                    Mat loadimg2 = imread("Images//img" + to_string(imgs) + "-4.jpg", CV_LOAD_IMAGE_GRAYSCALE);
                     findPlane(loadimg1, loadimg2);
                     count = 0;
                     imgs++;
@@ -210,22 +219,26 @@ int main(int argc, char** argv)
                 break;
              case 27:
                 //exit
+                cout << "Finish \n";
                 return 0;
                 break;
               case 'q':
                 registerImages();
+                printf("Registred \n");
                 break;
          }
     }*/
     namedWindow("Webcam", CV_WINDOW_AUTOSIZE);
-    Mat loadimg1 = imread("Images//img1-1.jpg", CV_LOAD_IMAGE_GRAYSCALE);
-    Mat loadimg2 = imread("Images//img1-2.jpg", CV_LOAD_IMAGE_GRAYSCALE);
-    Mat loadimg3 = imread("Images//img1-3.jpg", CV_LOAD_IMAGE_GRAYSCALE);
+    Mat loadimg1 = imread("Images//img1-0.jpg", CV_LOAD_IMAGE_GRAYSCALE);
+    Mat loadimg2 = imread("Images//img1-1.jpg", CV_LOAD_IMAGE_GRAYSCALE);
+    Mat loadimg3 = imread("Images//img1-2.jpg", CV_LOAD_IMAGE_GRAYSCALE);
     imshow("Webcam", loadimg1);
     waitKey(0);
     getCameraPosition(loadimg1, tvec, rmat);
     findPlane(loadimg2, loadimg3);
     registerImages();
-    cout << "Finish \n";
+    imwrite("prvi,jpg", random1);
+    imwrite("drugi,jpg", random2);
+    cout << "Failed \n";
     return 0;
 }
